@@ -18,7 +18,9 @@ def home_view(request):
         else:
             messages.error(request, "username or password was incorrect!!!")
             return redirect("website:home")
-    records = Record.objects.all().order_by('-created_at')
+    records = None
+    if request.user.is_authenticated:
+        records = Record.objects.all().filter(owner=request.user).order_by("-created_at")
     return render(request, "home.html", {"records": records})
 
 
@@ -57,7 +59,9 @@ def post_view(request):
     if request.method == "POST":
         form = PostForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save(commit=False)
+            user.owner = request.user
+            user.save()
             form = PostForm()
             return redirect("website:home")
 
@@ -77,10 +81,25 @@ def record_view(request, pk):
     print(record)
     return render(request, "record.html", context)
 
+
 def delete_view(request, pk):
     if request.user.is_anonymous:
         messages.warning(request, "YOU SHOULD LOGIN TO BE ABLE TO DELETE.")
         return redirect("website:home")
     record = Record.objects.get(id=pk)
     record.delete()
-    return redirect('website:home')
+    return redirect("website:home")
+
+
+def update_view(request, pk):
+    if request.user.is_anonymous:
+        messages.warning(request, "YOU SHOULD LOGIN TO BE ABLE TO UPDATE.")
+        return redirect("website:home")
+
+    record = Record.objects.get(id=pk)
+    form = PostForm(request.POST or None, instance=record)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "FORM BEEN UPDATED SUCCESSFULLY")
+        return redirect('website:home')
+    return render(request, 'post.html', {'form': form})
