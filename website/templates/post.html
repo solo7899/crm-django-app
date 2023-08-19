@@ -1,14 +1,16 @@
-{% extends 'base.html' %}
-
-{% block title %}Post{% endblock title %}
-
-{% block body %} 
-<form action="" method='POST' class='border border-1 rounded p-5 mt-5 bg-primary'>
-
-    {% csrf_token %}
-    <h1>Post Record</h1>
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-success">{% if 'post' in request.path %} Post {% else %} Update {% endif %}</button>
-
+{% extends 'base.html' %} 
+{% block title %}{% if 'post' in request.path %}Post{% else %}Update{% endif %}{% endblock title %} 
+{% block body %}
+<form
+  action=""
+  method="POST"
+  class="border border-1 rounded p-5 mt-5 bg-primary"
+>
+  {% csrf_token %}
+  <h1>{% if 'post' in request.path %}Post{% else %}Update{% endif %} Record</h1>
+  {{ form.as_p }}
+  <button type="submit" class="btn btn-success">
+    {% if 'post' in request.path %} Post {% else %} Update {% endif %}
+  </button>
 </form>
 {% endblock %}
