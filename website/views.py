@@ -1,9 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from .forms import RegisterForm, PostForm
 from .models import Record
-from django.contrib.auth.decorators import login_required
 
 
 # Create your views here.
@@ -19,7 +18,7 @@ def home_view(request):
         else:
             messages.error(request, "username or password was incorrect!!!")
             return redirect("website:home")
-    records = Record.objects.all()
+    records = Record.objects.all().order_by('-created_at')
     return render(request, "home.html", {"records": records})
 
 
@@ -49,14 +48,39 @@ def register_view(request):
     form = RegisterForm()
     return render(request, "register.html", {"form": form})
 
-@login_required(login_url='website:home')
+
+# @login_required(login_url='website:home', message="YOU SHOULD LOGIN TO BE ABLE TO POST.")
 def post_view(request):
-    if request.method == 'POST': 
+    if request.user.is_anonymous:
+        messages.warning(request, "YOU SHOULD LOGIN TO BE ABLE TO POST.")
+        return redirect("website:home")
+    if request.method == "POST":
         form = PostForm(request.POST)
         if form.is_valid():
             form.save()
             form = PostForm()
-            return redirect('website:home')
-    
+            return redirect("website:home")
+
     form = PostForm()
-    return render(request, "post.html", {'form': form})
+    return render(request, "post.html", {"form": form})
+
+
+def record_view(request, pk):
+    if request.user.is_anonymous:
+        messages.warning(request, "YOU SHOULD LOGIN TO BE ABLE TO POST.")
+        return redirect("website:home")
+
+    record = get_object_or_404(Record, id=pk)
+    context = {
+        "record": record,
+    }
+    print(record)
+    return render(request, "record.html", context)
+
+def delete_view(request, pk):
+    if request.user.is_anonymous:
+        messages.warning(request, "YOU SHOULD LOGIN TO BE ABLE TO DELETE.")
+        return redirect("website:home")
+    record = Record.objects.get(id=pk)
+    record.delete()
+    return redirect('website:home')
