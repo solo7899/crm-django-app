@@ -1,7 +1,7 @@
 # crm-django-app
 
 ## setup
-**first you have to setup your mysql database with username `root` password `toor`**
+**first you have to setup your mysql database with username `root` password `toor` and database `crmdb`**
 _(or you can change your database in settings)._
  
 ## before running the project ( just the first time )
